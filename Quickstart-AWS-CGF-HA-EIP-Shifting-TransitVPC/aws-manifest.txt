@@ -1,0 +1,29 @@
+CGF HA AWS TGW w/ EIP shift
+Manifest- stuff that needs to be created by the CFT or by the CLI script
+
+Spoke1 VPC
+Spoke2 VPC
+Spoke1 subnet
+Spoke2 subnet
+Spoke1 route table
+Spoke2 route table
+Spoke1 security group (allow all traffic in)
+Spoke2 security group (allow all traffic in)
+Customer gateway w/ static routing (points to CGF EIP)
+Virtual private gateway attached to CGF VPC (?)
+Site-to-site VPN conn (attached to TGW and CGW)
+Transit gateway
+TGW attachment - CGF VPN
+TGW attachment - Spoke1 VPC
+TGW attachment - Spoke2 VPC
+TGW route table, attached VPN, 3 propagations:
+	VPN propagation
+	VPC spoke 1 propagation
+	VPC spoke 2 propagation
+TGW route table, attached VPC spoke 1:
+	VPC spoke 1 propagation
+	Static route 0.0.0.0 to TGW attachment CGF VPN
+TGW route table, attached VPC spoke 2:
+	VPC spoke 2 propagation
+	Static route 0.0.0.0 to TGW attachment CGF VPN
+

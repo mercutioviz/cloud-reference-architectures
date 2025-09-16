@@ -1,0 +1,333 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "Spoke2VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.2.0.0/16",
+        "InstanceTenancy": "default",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "false",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App2VPC"
+          }
+        ]
+      }
+    },
+    "Spoke1VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.1.0.0/16",
+        "InstanceTenancy": "default",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "false",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App1VPC"
+          }
+        ]
+      }
+    },
+    "CGFHA-VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "192.168.0.0/16",
+        "InstanceTenancy": "default",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "Tags": [
+          {
+            "Key": "TemplateName",
+            "Value": "CGFHA"
+          },
+          {
+            "Key": "Name",
+            "Value": "CGFHA-VPC"
+          }
+        ]
+      }
+    },
+    "App2Subnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.2.0.0/24",
+        "AvailabilityZone": "eu-west-1a",
+        "VpcId": {
+          "Ref": "vpc00970d82a0966c3f3"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App2Subnet"
+          }
+        ]
+      }
+    },
+    "App1Subnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.1.0.0/24",
+        "AvailabilityZone": "eu-west-1b",
+        "VpcId": {
+          "Ref": "vpc004a1c3da457f28aa"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App1Subnet1"
+          }
+        ]
+      }
+    },
+    "igw": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CGFHA-IGW"
+          },
+          {
+            "Key": "TemplateName",
+            "Value": "CGFHA"
+          }
+        ]
+      }
+    },
+    "CGF2TGW-CGW": {
+      "Type": "AWS::EC2::CustomerGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CGF-2-TGW-VPN"
+          }
+        ],
+        "Type": "ipsec.1",
+        "IpAddress": "99.81.33.212",
+        "BgpAsn": "65000"
+      }
+    },
+    "TGW2CGF-VPN-Conn": {
+      "Type": "AWS::EC2::VPNConnection",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TGW2CGF"
+          }
+        ],
+        "Type": "ipsec.1",
+        "CustomerGatewayId": {
+          "Ref": "cgw05d6d73d7a9f9868e"
+        }
+      }
+    },
+    "CGFHA-RT-Main": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc07cf4ee34f6f61197"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CGFHA-RT-Main"
+          }
+        ]
+      }
+    },
+    "CGFHA-RT-Private": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc07cf4ee34f6f61197"
+        },
+        "Tags": [
+          {
+            "Key": "TemplateName",
+            "Value": "CGFHA"
+          },
+          {
+            "Key": "Name",
+            "Value": "CGFHA-RouteTablePrivate"
+          }
+        ]
+      }
+    },
+    "CGFHA-RT-Public": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc07cf4ee34f6f61197"
+        },
+        "Tags": [
+          {
+            "Key": "TemplateName",
+            "Value": "CGFHA"
+          },
+          {
+            "Key": "Name",
+            "Value": "CGFHA-RouteTablePublic"
+          }
+        ]
+      }
+    },
+    "Spoke1VPC-RT-Main": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc004a1c3da457f28aa"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App1VPC-RT-Main"
+          }
+        ]
+      }
+    },
+    "Spoke2VPC-RT-Main": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc00970d82a0966c3f3"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App2VPC-RT-Main"
+          }
+        ]
+      }
+    },
+    "FloatingEIP": {
+      "Type": "AWS::EC2::EIP",
+      "DependsOn": [
+        "gw1"
+      ],
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "sgCGFHAwithXitsecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow All Traffic.",
+        "VpcId": {
+          "Ref": "vpc07cf4ee34f6f61197"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CGFHA-SecurityGroup"
+          },
+          {
+            "Key": "TemplateName",
+            "Value": "CGFHA"
+          }
+        ]
+      }
+    },
+    "gw1": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc07cf4ee34f6f61197"
+        },
+        "InternetGatewayId": {
+          "Ref": "igw0c8e4852fd6853352"
+        }
+      }
+    },
+    "subnetroute2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "rtb03e8b380e533ade3d"
+        },
+        "SubnetId": {
+          "Ref": "subnet0f10ff0dd91c06ec2"
+        }
+      }
+    },
+    "subnetroute3": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "rtb03e8b380e533ade3d"
+        },
+        "SubnetId": {
+          "Ref": "subnet0d51d4f6b158e18d6"
+        }
+      }
+    },
+    "route1": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "rtb01d0f0b7ff5c31259"
+        },
+        "InstanceId": {
+          "Ref": "instancei0dfa7db40dbc67d68"
+        }
+      }
+    },
+    "CGFHA-Default-Route": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "rtb03e8b380e533ade3d"
+        },
+        "GatewayId": {
+          "Ref": "igw0c8e4852fd6853352"
+        }
+      },
+      "DependsOn": "gw1"
+    },
+    "route3": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "rtb0bddc6e457a56243b"
+        }
+      }
+    },
+    "route4": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "rtb0ae58bf258d9a6f50"
+        }
+      }
+    },
+    "ingress1": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "sgCGFHAwithXitsecurityGroupCGFHLH5OWP7L3P0"
+        },
+        "IpProtocol": "-1",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "egress1": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "sgCGFHAwithXitsecurityGroupCGFHLH5OWP7L3P0"
+        },
+        "IpProtocol": "-1",
+        "CidrIp": "0.0.0.0/0"
+      }
+    }
+  },
+  "Description": "Cloud former test"
+}
